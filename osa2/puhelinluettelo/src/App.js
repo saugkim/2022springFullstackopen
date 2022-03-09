@@ -3,29 +3,22 @@ import Header from './components/Header'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
-import axios from 'axios'
+import services from './services/persons'
+import Notification from './components/Notification'
 
 const App = () => {
 
-  const [persons, setPersons] = useState([
-    // { name: 'Arto Hellas', number: '040-123456' },
-    // { name: 'Ada Lovelace', number: '39-44-5323523' },
-    // { name: 'Dan Abramov', number: '12-43-234345' },
-    // { name: 'Mary Poppendieck', number: '39-23-6423122' }
-  ]) 
-
+  const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
+  const [notice, setNotice] = useState(null)
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
-      })
+    services
+      .getAll()
+      .then(response => 
+        setPersons(response))
   }, [])
 
   const handleNameChange = (event) => {
@@ -34,7 +27,6 @@ const App = () => {
   const handleNumberChange= (event) => {
     setNewNumber(event.target.value)
   }
-
   const handleFilterChange = (event) => {
     console.log(event.target.value)
     setNewFilter(event.target.value)
@@ -46,18 +38,77 @@ const App = () => {
       name: newName,
       number: newNumber
     }
-
-    if ( persons.find(person => person.name === newName) === undefined ) {
-      setPersons(persons.concat(p))
-      setNewName('')
+    const found = persons.find(person => person.name === newName)
+    
+    if ( found === undefined ) {
+      services
+        .create(p)
+        .then(newPerson => {
+          setPersons(persons.concat(newPerson))
+          setNewName('')
+          setNewNumber('')
+          setNotice(`Added ${newName}`)
+          setTimeout(() => {          
+            setNotice(null)        
+          }, 3000)
+        })
+        .catch()
     } else {
-      alert(`${newName} is already added to phonebook`)
+      if (window.confirm(`${newName} is already added to phonebook, replace old number with a new one`)) {
+        updatePerson(found)
+      }
     }
+  }
+
+  const updatePerson = (p) => {  
+    const updatedPerson = { ...p, name: newName, number: newNumber }
+    console.log(updatedPerson.name, updatedPerson.number, updatedPerson.id)
+
+    services
+      .update(p.id, updatedPerson) 
+      .then(returned => {
+        setPersons(persons.map(person => person.id !== p.id ? person : returned))
+        setNewName('')
+        setNewNumber('')
+        setNotice(`${newName}'s phone number updated`)
+        setTimeout(() => {          
+          setNotice(null)        
+        }, 3000)
+      })
+      .catch(error => { 
+        setNotice(`Information of ${p.name} was already deleted from server`)
+        setTimeout(() => {          
+          setNotice(null)
+        }, 3000)
+        setPersons(persons.filter(person => person.id !== p.id))    
+      })
+  }
+
+  const removePerson = (childdata) => {
+    console.log(childdata)
+    if (window.confirm(`Delete ${childdata.name} ?`)) {
+      services
+        .remove(childdata.id)
+        .then(() => {
+          services.getAll().then(returned => setPersons(returned))
+          setNotice(`${childdata.name} was successfully deleted from server`)
+          setTimeout(() => {          
+            setNotice(null)        
+          }, 3000)
+        })
+        .catch(error => {
+          setNotice(`Information of ${childdata.name} was already deleted from server`)
+          setTimeout(() => {          
+            setNotice(null)
+          }, 3000) 
+        }) 
+      }
   }
 
   return (
     <div>
-      <Header text='Phonbook' />
+      <Header text='Phonebook' />
+      <Notification message={notice} />
       <Filter filter={newFilter} handler={handleFilterChange} />
 
       <Header text='add a new' />
@@ -69,12 +120,7 @@ const App = () => {
       </form> */}
 
       <Header text='Numbers' />
-      <Persons persons={persons} filter={newFilter} />
-      {/* <table><tbody>
-        {persons.map( person =>
-           <Person key={person.name} name={person.name} number={person.number} />
-        )}
-      </tbody></table> */}
+      <Persons persons={persons} filter={newFilter} handler={removePerson} />
     </div>
   )
 }
