@@ -66,8 +66,10 @@ const App = () => {
 
     services
       .update(p.id, updatedPerson) 
-      .then(returned => {
-        setPersons(persons.map(person => person.id !== p.id ? person : returned))
+      .then( returned => {
+        console.log(updatedPerson)
+        setPersons(persons.map(person => person.id !== p.id ? person : updatedPerson))
+        console.log('after setPersons')
         setNewName('')
         setNewNumber('')
         setNotice(`${newName}'s phone number updated`)
@@ -76,11 +78,11 @@ const App = () => {
         }, 3000)
       })
       .catch(error => { 
-        setNotice(`Information of ${p.name} was already deleted from server`)
+        setNotice(`Information of ${p.name} updating phone number failed`)
         setTimeout(() => {          
           setNotice(null)
         }, 3000)
-        setPersons(persons.filter(person => person.id !== p.id))    
+        //setPersons(persons.filter(person => person.id !== p.id))    
       })
   }
 

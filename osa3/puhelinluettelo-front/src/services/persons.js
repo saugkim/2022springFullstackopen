@@ -19,9 +19,12 @@ const create = async (newObject) => {
 
 
 const update = async (id, newObject) => {
+  console.log('service update line 1')
   const request = axios.put(`${baseUrl}/${id}`, newObject)
+  console.log('service update line 2')
   const response = await request
-  console.log(response.data)
+  console.log('service update line 3')
+  console.log('update', response.data)
   return response.data
 }
 
