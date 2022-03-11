@@ -84,7 +84,7 @@ const App = () => {
         }, 3000)
       })
       .catch(error => { 
-        setNotice(`Information of ${p.name} updating phone number failed`)
+        setNotice(error.response.data.error)
         setTimeout(() => {          
           setNotice(null)
         }, 3000)
