@@ -53,7 +53,8 @@ const App = () => {
           }, 3000)
         })
         .catch(error => {
-          setNotice(error.response.data)
+          console.log(error.response.data.error)
+          setNotice(error.response.data.error)
           setTimeout(() => {
             setNotice(null)
           }, 3000);
