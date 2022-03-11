@@ -102,7 +102,8 @@ const App = () => {
           setNotice(`Information of ${childdata.name} was already deleted from server`)
           setTimeout(() => {          
             setNotice(null)
-          }, 3000) 
+          }, 3000)
+          setPersons(persons.filter(person => person.id !== childdata.id)) 
         }) 
       }
   }
