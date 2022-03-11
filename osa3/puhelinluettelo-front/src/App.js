@@ -52,7 +52,12 @@ const App = () => {
             setNotice(null)        
           }, 3000)
         })
-        .catch()
+        .catch(error => {
+          setNotice(error.response.data)
+          setTimeout(() => {
+            setNotice(null)
+          }, 3000);
+        })
     } else {
       if (window.confirm(`${newName} is already added to phonebook, replace old number with a new one`)) {
         updatePerson(found)
